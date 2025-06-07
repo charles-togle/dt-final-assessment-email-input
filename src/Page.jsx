@@ -24,7 +24,6 @@ export default function Page () {
       switch (event.key) {
         case 'ArrowDown':
           if (dropdownItems.length > 0) {
-            event.preventDefault()
             setSelectedDropdown(prev =>
               Math.min(prev + 1, dropdownItems.length - 1)
             )
@@ -32,18 +31,17 @@ export default function Page () {
           break
         case 'ArrowUp':
           if (dropdownItems.length > 0) {
-            event.preventDefault()
             setSelectedDropdown(prev => Math.max(prev - 1, 0))
           }
           break
         case 'Enter':
         case 'Tab':
-          event.preventDefault()
           if (selectedDropdown !== -1 && dropdownItems[selectedDropdown]) {
             updateEmails(dropdownItems[selectedDropdown])
           } else if (tempEmail.trim() !== '') {
             updateEmails(tempEmail)
           }
+          setDropDownItems([])
           break
       }
     }
