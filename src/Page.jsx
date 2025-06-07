@@ -1,7 +1,7 @@
 import EmailInput from './components/EmailInput'
 import Container from './components/Container'
 import DisplayEmail from './components/DisplayEmail'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DropDown from './components/DropDown'
 import { fetchData } from './services/fetchData'
 export default function Page () {
@@ -9,24 +9,50 @@ export default function Page () {
   const [dropdownItems, setDropDownItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [tempEmail, setTempEmail] = useState('')
+  const [selectedDropdown, setSelectedDropdown] = useState(-1)
+  const selectedDropdownRef = useRef(selectedDropdown)
 
-  //event listener to determine kung nag add ba si user through clicking Enter
+  useEffect(() => {
+    selectedDropdownRef.current = selectedDropdown
+  }, [selectedDropdown])
+
+  //dropdown and temp email for adding
   useEffect(() => {
     const handleKeyPress = event => {
       if (loading) return
-      if (
-        event.key === 'Enter' &&
-        tempEmail.trim() !== '' &&
-        dropdownItems.length === 0 //fixes bug, di nagana drop down selection for the first time pag wala
-      ) {
-        updateEmails(tempEmail)
+
+      switch (event.key) {
+        case 'ArrowDown':
+          if (dropdownItems.length > 0) {
+            event.preventDefault()
+            setSelectedDropdown(prev =>
+              Math.min(prev + 1, dropdownItems.length - 1)
+            )
+          }
+          break
+        case 'ArrowUp':
+          if (dropdownItems.length > 0) {
+            event.preventDefault()
+            setSelectedDropdown(prev => Math.max(prev - 1, 0))
+          }
+          break
+        case 'Enter':
+        case 'Tab':
+          event.preventDefault()
+          if (selectedDropdown !== -1 && dropdownItems[selectedDropdown]) {
+            updateEmails(dropdownItems[selectedDropdown])
+          } else if (tempEmail.trim() !== '') {
+            updateEmails(tempEmail)
+          }
+          break
       }
     }
+
     document.addEventListener('keydown', handleKeyPress)
     return () => {
-      document.removeEventListener('keydown', handleKeyPress) //cleanup
+      document.removeEventListener('keydown', handleKeyPress)
     }
-  }, [tempEmail, loading]) //loading in dependency para makuha kung may dropdown ba or wala pa
+  }, [dropdownItems, selectedDropdown, tempEmail, loading])
 
   //getting data pag may input si user hence the [tempEmail] dependency
   useEffect(() => {
@@ -70,6 +96,8 @@ export default function Page () {
     const updatedEmails = [...emails, email]
     setEmails(updatedEmails)
     setTempEmail('')
+    console.log('Set')
+    setSelectedDropdown(-1)
   }
 
   return (
@@ -98,7 +126,11 @@ export default function Page () {
           </div>
         </Container>
         <div className='flex self-start'>
-          <DropDown values={dropdownItems} setValue={updateEmails} />
+          <DropDown
+            values={dropdownItems}
+            setValue={updateEmails}
+            selected={selectedDropdown}
+          />
         </div>
       </div>
     </div>

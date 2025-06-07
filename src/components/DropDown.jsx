@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 const DropDownItem = ({ value, onClick = () => {}, isSelected }) => {
   return (
@@ -13,37 +13,9 @@ const DropDownItem = ({ value, onClick = () => {}, isSelected }) => {
   )
 }
 
-export default function DropDown ({ setValue, values }) {
-  const [selected, setSelected] = useState(0)
+export default function DropDown ({ setValue, values, selected }) {
   const container = useRef(null)
   const selectedItem = useRef(null)
-
-  //watches kung may clinick ba si user na key
-  useEffect(() => {
-    const handleKeyPress = event => {
-      switch (event.key) {
-        case 'ArrowDown':
-          event.preventDefault()
-          setSelected(prev => Math.min(prev + 1, values.length - 1)) //pipili between pinakamataas na possible value (length-1) or ung prev+1
-          break
-        case 'ArrowUp':
-          event.preventDefault()
-          setSelected(prev => Math.max(prev - 1, 0))  //pipili between mas mababang value between (length-1) and prev-1
-          break
-        case 'Enter': //walang break para makukuha niya rin ung sa tab
-        case 'Tab':
-          event.preventDefault()
-          if (values[selected]) {
-            setValue(values[selected])
-          }
-          break
-      }
-    }
-    document.addEventListener('keydown', handleKeyPress)
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress) //cleanup
-    }
-  }, [values, selected, setValue])
 
   //scroll kada lipat ng selected item
   useEffect(() => {
@@ -52,10 +24,6 @@ export default function DropDown ({ setValue, values }) {
       block: 'start'
     })
   }, [selected])
-
-  useEffect(() => {
-    setSelected(0)
-  }, [values])
 
   if (values.length === 0) return null
 
@@ -69,7 +37,9 @@ export default function DropDown ({ setValue, values }) {
           <div key={value} ref={index === selected ? selectedItem : null}>
             <DropDownItem
               value={value}
-              onClick={() => setValue(value)}
+              onClick={() => {
+                setValue(value)
+              }}
               isSelected={index === selected}
             />
           </div>
