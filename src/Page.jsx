@@ -9,44 +9,34 @@ export default function Page () {
   const [dropdownItems, setDropDownItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [tempEmail, setTempEmail] = useState('')
-  const handleEmailDelete = email => {
-    let deletedEmailIndex = emails.indexOf(email)
-    console.log(deletedEmailIndex)
-    if (deletedEmailIndex !== -1) {
-      const updatedEmails = emails.filter(
-        (_, index) => index !== deletedEmailIndex
-      )
-      setEmails(updatedEmails)
-    }
-  }
-  const updateEmails = email => {
-    if (emails.indexOf(email) !== -1) return
-    const updatedEmails = [...emails, email]
-    setEmails(updatedEmails)
-    setTempEmail('')
-  }
 
+  //event listener to determine kung nag add ba si user through clicking Enter
   useEffect(() => {
     const handleKeyPress = event => {
       if (loading) return
       if (
         event.key === 'Enter' &&
         tempEmail.trim() !== '' &&
-        dropdownItems.length === 0
+        dropdownItems.length === 0 //fixes bug, di nagana drop down selection for the first time pag wala
       ) {
         updateEmails(tempEmail)
       }
     }
     document.addEventListener('keydown', handleKeyPress)
     return () => {
-      document.removeEventListener('keydown', handleKeyPress)
+      document.removeEventListener('keydown', handleKeyPress) //cleanup
     }
-  }, [tempEmail, loading])
+  }, [tempEmail, loading]) //loading in dependency para makuha kung may dropdown ba or wala pa
 
+  //getting data pag may input si user hence the [tempEmail] dependency
   useEffect(() => {
     async function getData () {
       setLoading(true)
       const data = await fetchData()
+      if (!data) {
+        setDropDownItems([])
+        return
+      }
       const cleanedData = data.filter(email =>
         email.toLowerCase().startsWith(tempEmail.toLowerCase())
       )
@@ -61,6 +51,26 @@ export default function Page () {
       setDropDownItems([])
     }
   }, [tempEmail])
+
+  //pag delete ng emails na nasa array na
+  const handleEmailDelete = email => {
+    let deletedEmailIndex = emails.indexOf(email)
+    console.log(deletedEmailIndex)
+    if (deletedEmailIndex !== -1) {
+      const updatedEmails = emails.filter(
+        (_, index) => index !== deletedEmailIndex
+      )
+      setEmails(updatedEmails)
+    }
+  }
+
+  //eventlistner when nag add si user ng email
+  const updateEmails = email => {
+    if (emails.indexOf(email) !== -1) return
+    const updatedEmails = [...emails, email]
+    setEmails(updatedEmails)
+    setTempEmail('')
+  }
 
   return (
     <div className='default font w-screen h-screen bg-[#ebebeb] flex justify-center flex-col items-center relative'>
